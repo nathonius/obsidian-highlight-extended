@@ -4,8 +4,9 @@
   "description": "Easily add custom text colors without HTML.",
   "main": "main.js",
   "scripts": {
-    "dev": "rollup --config rollup.config.js -w",
-    "build": "rollup --config rollup.config.js --environment BUILD:production"
+    "dev": "rollup --config rollup.config.js",
+    "build": "rollup --config rollup.config.js --environment BUILD:production",
+    "prepare": "husky install"
   },
   "keywords": [],
   "author": {
@@ -23,11 +24,17 @@
     "@typescript-eslint/parser": "^4.31.2",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
+    "husky": "^7.0.2",
+    "lint-staged": "^11.1.2",
     "obsidian": "^0.12.0",
     "prettier": "^2.4.1",
     "rollup": "^2.32.1",
     "rollup-plugin-terser": "^7.0.2",
     "tslib": "^2.2.0",
     "typescript": "^4.4.3"
+  },
+  "lint-staged": {
+    "*.ts": "eslint --cache --fix",
+    "*.{ts,scss}": "prettier --write"
   }
 }

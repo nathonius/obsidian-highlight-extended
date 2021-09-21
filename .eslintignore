@@ -9,6 +9,7 @@ node_modules
 main.js
 *.js.map
 .husky
+rollup.config.js
 
 # obsidian
 data.json
