@@ -5,7 +5,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import { terser } from 'rollup-plugin-terser';
 
 const isProd = process.env.BUILD === 'production';
-const plugins = [typescript(), nodeResolve({ browser: true }), commonjs(), scss({ output: 'styles.css' })];
+const plugins = [typescript(), nodeResolve({ browser: true }), commonjs()];
 
 if (isProd) {
   plugins.push(terser());
