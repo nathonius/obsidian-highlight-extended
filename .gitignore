@@ -9,6 +9,7 @@ node_modules
 main.js
 *.js.map
 .husky
+.eslintcache
 
 # obsidian
 data.json
