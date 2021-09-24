@@ -52,7 +52,6 @@ export class TextColorsPlugin extends Plugin {
       const line = instance.getLine(i);
       let match: RegExpExecArray | null = null;
       while ((match = EDIT_MODE_PATTERN.exec(line)) !== null) {
-        console.log(match);
         const start = match.index;
         const end = match.index + match[0].length;
         const color = match[1];
@@ -76,7 +75,9 @@ export class TextColorsPlugin extends Plugin {
   private markdownPostProcessor(el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
     let match: RegExpExecArray | null = null;
     while ((match = PREVIEW_MODE_PATTERN.exec(el.innerHTML)) !== null) {
+      console.log(match);
       const color = match[3];
+      const backgroundColor = match[5] ? match[5] : 'unset';
 
       // Remove the [color]
       el.innerHTML = `${el.innerHTML.substring(0, match.index + match[1].length)}${el.innerHTML.substring(
@@ -87,7 +88,7 @@ export class TextColorsPlugin extends Plugin {
       el.innerHTML = `${el.innerHTML.substring(
         0,
         match.index + 5
-      )} style="color: ${color}; background-color: unset;"${el.innerHTML.substring(match.index + 5)}`;
+      )} style="color: ${color}; background-color: ${backgroundColor};"${el.innerHTML.substring(match.index + 5)}`;
     }
   }
 }
