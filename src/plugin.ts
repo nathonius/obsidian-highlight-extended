@@ -52,14 +52,16 @@ export class TextColorsPlugin extends Plugin {
       const line = instance.getLine(i);
       let match: RegExpExecArray | null = null;
       while ((match = EDIT_MODE_PATTERN.exec(line)) !== null) {
+        console.log(match);
         const start = match.index;
         const end = match.index + match[0].length;
         const color = match[1];
+        const backgroundColor = match[3] ? match[3] : 'unset';
         marks.push(
           instance.markText(
             { line: i, ch: start },
             { line: i, ch: end },
-            { css: `color: ${color}; background-color: unset;` }
+            { css: `color: ${color}; background-color: ${backgroundColor};` }
           )
         );
       }
