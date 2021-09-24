@@ -1,5 +1,5 @@
-import { Plugin } from 'obsidian';
-import { ACTIVE_FILE, EDIT_MODE_PATTERN } from './constants';
+import { MarkdownPostProcessorContext, Plugin } from 'obsidian';
+import { ACTIVE_FILE, EDIT_MODE_PATTERN, PREVIEW_MODE_PATTERN } from './constants';
 
 export class TextColorsPlugin extends Plugin {
   markedLines: Record<string, Record<number, CodeMirror.TextMarker[]>> = {};
@@ -7,6 +7,8 @@ export class TextColorsPlugin extends Plugin {
     this.registerCodeMirror((editor) => {
       editor.on('change', this.handleChange.bind(this));
     });
+
+    this.registerMarkdownPostProcessor(this.markdownPostProcessor.bind(this));
   }
 
   private handleChange(instance: CodeMirror.Editor, changeObj: CodeMirror.EditorChangeLinkedList): void {
@@ -66,6 +68,24 @@ export class TextColorsPlugin extends Plugin {
       if (marks.length > 0) {
         this.markedLines[fileKey][i] = marks;
       }
+    }
+  }
+
+  private markdownPostProcessor(el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
+    let match: RegExpExecArray | null = null;
+    while ((match = PREVIEW_MODE_PATTERN.exec(el.innerHTML)) !== null) {
+      const color = match[3];
+
+      // Remove the [color]
+      el.innerHTML = `${el.innerHTML.substring(0, match.index + match[1].length)}${el.innerHTML.substring(
+        match.index + match[1].length + match[2].length
+      )}`;
+
+      // Add the styling
+      el.innerHTML = `${el.innerHTML.substring(
+        0,
+        match.index + 5
+      )} style="color: ${color}; background-color: unset;"${el.innerHTML.substring(match.index + 5)}`;
     }
   }
 }
