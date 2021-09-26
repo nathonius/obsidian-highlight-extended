@@ -1,9 +1,19 @@
 import { MarkdownPostProcessorContext, Plugin } from 'obsidian';
-import { ACTIVE_FILE, EDIT_MODE_PATTERN, PREVIEW_MODE_PATTERN } from './constants';
+import { ACTIVE_FILE, DEFAULT_SETTINGS, EDIT_MODE_PATTERN, PREVIEW_MODE_PATTERN } from './constants';
+import { PluginSettings } from './interfaces';
+import { TextColorsSettings } from './settings';
 
 export class TextColorsPlugin extends Plugin {
+  settings!: TextColorsSettings;
   markedLines: Record<string, Record<number, CodeMirror.TextMarker[]>> = {};
   async onload(): Promise<void> {
+    const savedData = await this.loadData();
+    const savedSettings: PluginSettings = Object.assign({}, DEFAULT_SETTINGS, savedData);
+    console.log(savedSettings);
+    this.settings = new TextColorsSettings(this.app, this, savedSettings);
+
+    this.addSettingTab(this.settings);
+
     this.registerCodeMirror((editor) => {
       editor.on('change', this.handleChange.bind(this));
     });
@@ -60,7 +70,11 @@ export class TextColorsPlugin extends Plugin {
           instance.markText(
             { line: i, ch: start },
             { line: i, ch: end },
-            { css: `color: ${color}; background-color: ${backgroundColor};` }
+            {
+              css: `color: ${this.getColorVariable(color)}; background-color: ${this.getColorVariable(
+                backgroundColor
+              )};`
+            }
           )
         );
       }
@@ -85,10 +99,19 @@ export class TextColorsPlugin extends Plugin {
       )}`;
 
       // Add the styling
-      el.innerHTML = `${el.innerHTML.substring(
-        0,
-        match.index + 5
-      )} style="color: ${color}; background-color: ${backgroundColor};"${el.innerHTML.substring(match.index + 5)}`;
+      el.innerHTML = `${el.innerHTML.substring(0, match.index + 5)} style="color: ${this.getColorVariable(
+        color
+      )}; background-color: ${this.getColorVariable(backgroundColor)};"${el.innerHTML.substring(match.index + 5)}`;
     }
+  }
+
+  private getColorVariable(key: string): string {
+    if (key.startsWith('$')) {
+      const variableName = key.substring(1);
+      if (this.settings.settings.colorVariables[variableName]) {
+        return this.settings.settings.colorVariables[variableName];
+      }
+    }
+    return key;
   }
 }
