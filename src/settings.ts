@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import { ColorPalette, PluginSettings } from './interfaces';
-import { ManageVariablesModal } from './modal';
+import { ManagePalettesModal } from './manage-palettes-modal';
+import { ManageVariablesModal } from './manage-variables-modal';
 import { TextColorsPlugin } from './plugin';
 
 export class TextColorsSettings extends PluginSettingTab {
@@ -9,6 +10,11 @@ export class TextColorsSettings extends PluginSettingTab {
     this.plugin.app,
     this.addColorVariable.bind(this),
     this.removeColorVariable.bind(this)
+  );
+  managePalettesModal = new ManagePalettesModal(
+    this.plugin.app,
+    this.addPalette.bind(this),
+    this.removePalette.bind(this)
   );
   constructor(app: App, private readonly plugin: TextColorsPlugin, savedSettings: PluginSettings) {
     super(app, plugin);
@@ -32,7 +38,9 @@ export class TextColorsSettings extends PluginSettingTab {
       .setDesc('Define combinations of foreground and background colors.')
       .addButton((button) => {
         button.setButtonText('Manage Palettes').onClick(() => {
-          console.log('manage palettes');
+          this.managePalettesModal.variables = this.settings.colorVariables;
+          this.managePalettesModal.palettes = this.settings.palettes;
+          this.managePalettesModal.open();
         });
       });
   }
@@ -42,11 +50,14 @@ export class TextColorsSettings extends PluginSettingTab {
     await this.plugin.saveData(this.settings);
   }
 
-  private async addColorVariable(key: string, value: string): Promise<void> {
-    console.log(this.settings);
-    const newVariables = { ...this.settings.colorVariables };
-    newVariables[key] = value;
-    await this.saveSetting('colorVariables', newVariables);
+  private async addColorVariable(key: string, value: string): Promise<boolean> {
+    if (!this.settings.colorVariables[key]) {
+      const newVariables = { ...this.settings.colorVariables };
+      newVariables[key] = value;
+      await this.saveSetting('colorVariables', newVariables);
+      return true;
+    }
+    return false;
   }
 
   private async removeColorVariable(key: string): Promise<void> {
@@ -55,10 +66,14 @@ export class TextColorsSettings extends PluginSettingTab {
     await this.saveSetting('colorVariables', newVariables);
   }
 
-  private async addPalette(key: string, value: ColorPalette): Promise<void> {
-    const newPalettes = { ...this.settings.palettes };
-    newPalettes[key] = value;
-    await this.saveSetting('palettes', newPalettes);
+  private async addPalette(key: string, value: ColorPalette): Promise<boolean> {
+    if (!this.settings.palettes[key]) {
+      const newPalettes = { ...this.settings.palettes };
+      newPalettes[key] = value;
+      await this.saveSetting('palettes', newPalettes);
+      return true;
+    }
+    return false;
   }
 
   private async removePalette(key: string): Promise<void> {

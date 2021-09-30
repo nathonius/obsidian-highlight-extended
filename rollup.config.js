@@ -3,9 +3,10 @@ import typescript from '@rollup/plugin-typescript';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { terser } from 'rollup-plugin-terser';
+import scss from 'rollup-plugin-scss';
 
 const isProd = process.env.BUILD === 'production';
-const plugins = [typescript(), nodeResolve({ browser: true }), commonjs()];
+const plugins = [typescript(), nodeResolve({ browser: true }), commonjs(), scss({ output: 'styles.css' })];
 
 if (isProd) {
   plugins.push(terser());

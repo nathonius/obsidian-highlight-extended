@@ -3,6 +3,8 @@ import { ACTIVE_FILE, DEFAULT_SETTINGS, EDIT_MODE_PATTERN, PREVIEW_MODE_PATTERN 
 import { PluginSettings } from './interfaces';
 import { TextColorsSettings } from './settings';
 
+import './styles.scss';
+
 export class TextColorsPlugin extends Plugin {
   settings!: TextColorsSettings;
   markedLines: Record<string, Record<number, CodeMirror.TextMarker[]>> = {};

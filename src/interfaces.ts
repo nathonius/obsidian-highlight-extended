@@ -1,6 +1,6 @@
 export interface ColorPalette {
-  foreground: string;
-  background: string;
+  foreground: string | null;
+  background: string | null;
 }
 
 export interface PluginSettings {

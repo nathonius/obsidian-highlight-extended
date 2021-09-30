@@ -1,0 +1,45 @@
+.text-color-plugin-modal {
+  max-width: 90vw;
+}
+.text-color-table {
+  &--table {
+    border-collapse: collapse;
+    width: 100%;
+  }
+  &--table-header {
+    th {
+      text-align: left;
+    }
+  }
+  &--table-row {
+    td {
+      padding-top: 2px;
+      padding-bottom: 4px;
+    }
+    svg {
+      cursor: pointer;
+    }
+  }
+  &--color-square {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  &--button-cell {
+    text-align: right;
+  }
+  &--input-row {
+    border-top: 1px solid var(--background-modifier-border);
+    input {
+      width: 150px;
+      background-color: transparent;
+      border: 0;
+      padding: 0;
+      &:hover {
+        background-color: transparent;
+      }
+    }
+  }
+}
