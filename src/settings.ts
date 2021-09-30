@@ -26,7 +26,7 @@ export class TextColorsSettings extends PluginSettingTab {
     this.containerEl.createEl('h2', { text: 'Text Colors settings.' });
     new Setting(this.containerEl)
       .setName('Color Variables')
-      .setDesc('Define custom colors.')
+      .setDesc('Define custom colors. Color variables can be referenced using the $ symbol.')
       .addButton((button) => {
         button.setButtonText('Manage Variables').onClick(() => {
           this.manageVariablesModal.variables = this.settings.colorVariables;
@@ -35,7 +35,9 @@ export class TextColorsSettings extends PluginSettingTab {
       });
     new Setting(this.containerEl)
       .setName('Palettes')
-      .setDesc('Define combinations of foreground and background colors.')
+      .setDesc(
+        'Define combinations of foreground and background colors. Palettes can be referenced using the $ symbol.'
+      )
       .addButton((button) => {
         button.setButtonText('Manage Palettes').onClick(() => {
           this.managePalettesModal.variables = this.settings.colorVariables;

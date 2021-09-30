@@ -1,5 +1,6 @@
+import * as CodeMirror from 'codemirror';
 import { MarkdownPostProcessorContext, Plugin } from 'obsidian';
-import { ACTIVE_FILE, DEFAULT_SETTINGS, EDIT_MODE_PATTERN, PREVIEW_MODE_PATTERN } from './constants';
+import { DEFAULT_SETTINGS, EDIT_MODE_PATTERN, PREVIEW_MODE_PATTERN } from './constants';
 import { PluginSettings } from './interfaces';
 import { TextColorsSettings } from './settings';
 
@@ -7,7 +8,7 @@ import './styles.scss';
 
 export class TextColorsPlugin extends Plugin {
   settings!: TextColorsSettings;
-  markedLines: Record<string, Record<number, CodeMirror.TextMarker[]>> = {};
+
   async onload(): Promise<void> {
     const savedData = await this.loadData();
     const savedSettings: PluginSettings = Object.assign({}, DEFAULT_SETTINGS, savedData);
@@ -23,67 +24,44 @@ export class TextColorsPlugin extends Plugin {
     this.registerMarkdownPostProcessor(this.markdownPostProcessor.bind(this));
   }
 
-  private handleChange(instance: CodeMirror.Editor, changeObj: CodeMirror.EditorChangeLinkedList): void {
-    // Get key for current file
-    const file = this.app.workspace.getActiveFile();
-    const fileKey = file ? file.path : ACTIVE_FILE;
-
-    // Compute ranges
-    const startRange = changeObj.from.line;
-    const endRemoveRange = changeObj.to.line + 1;
-    const endAddRange = startRange + changeObj.text.length;
-    const endRange = Math.max(endRemoveRange, endAddRange);
-
-    // If file is null we need to clear all marks first.
-    if (fileKey === ACTIVE_FILE && this.markedLines[fileKey]) {
-      Object.keys(this.markedLines[fileKey]).forEach((key: string) => {
-        const lineNumber = parseInt(key);
-        this.markedLines[fileKey][lineNumber].forEach((mark) => {
-          mark.clear();
-        });
-        delete this.markedLines[ACTIVE_FILE][lineNumber];
-      });
+  private clearMarks(instance: CodeMirror.Editor, start: number, end: number): void {
+    console.log(`start: ${start}; end: ${end}`);
+    const line = instance.getLine(end);
+    console.log(line);
+    if (line) {
+      const endLength = line.length;
+      const marks = instance.findMarks({ line: start, ch: 0 }, { line: end, ch: endLength });
+      marks.forEach((m) => m.clear());
     }
+  }
 
-    // Handle each changed line
-    for (let i = startRange; i < endRange; i++) {
-      if (!this.markedLines[fileKey]) {
-        this.markedLines[fileKey] = {};
-      }
+  private handleChange(instance: CodeMirror.Editor, changeObj: CodeMirror.EditorChangeLinkedList): void {
+    // Compute ranges
+    const { start: startRange, end: endRange } = this.getChangeRange(instance, changeObj);
 
-      // Unmark affected lines
-      if (this.markedLines[fileKey][i]) {
-        this.markedLines[fileKey][i].forEach((marker) => {
-          marker.clear();
-        });
-        delete this.markedLines[fileKey][i];
-      }
+    // Clear old marks on these lines
+    this.clearMarks(instance, startRange, endRange - 1);
 
-      // Mark affected lines
-      const marks: CodeMirror.TextMarker[] = [];
-      const line = instance.getLine(i);
+    // Mark affected lines
+    for (let lineNumber = startRange; lineNumber < endRange; lineNumber++) {
+      const lineContent = instance.getLine(lineNumber);
       let match: RegExpExecArray | null = null;
-      while ((match = EDIT_MODE_PATTERN.exec(line)) !== null) {
+      while ((match = EDIT_MODE_PATTERN.exec(lineContent)) !== null) {
         const start = match.index;
         const end = match.index + match[0].length;
         const color = match[1];
         const backgroundColor = match[3] ? match[3] : 'unset';
-        marks.push(
-          instance.markText(
-            { line: i, ch: start },
-            { line: i, ch: end },
-            {
-              css: `color: ${this.getColorVariable(color)}; background-color: ${this.getColorVariable(
-                backgroundColor
-              )};`
-            }
-          )
-        );
-      }
 
-      // Save marks if any were made
-      if (marks.length > 0) {
-        this.markedLines[fileKey][i] = marks;
+        // Create mark config
+        const from: CodeMirror.Position = { line: lineNumber, ch: start };
+        const to: CodeMirror.Position = { line: lineNumber, ch: end };
+
+        // Mark text, if a color is given
+        if (color) {
+          instance.markText(from, to, {
+            css: `color: ${this.getColorVariable(color)}; background-color: ${this.getColorVariable(backgroundColor)};`
+          });
+        }
       }
     }
   }
@@ -105,6 +83,22 @@ export class TextColorsPlugin extends Plugin {
         color
       )}; background-color: ${this.getColorVariable(backgroundColor)};"${el.innerHTML.substring(match.index + 5)}`;
     }
+  }
+
+  private getChangeRange(
+    instance: CodeMirror.Editor,
+    changeObj: CodeMirror.EditorChangeLinkedList
+  ): { start: number; end: number } {
+    // Make sure the start of the range doesn't go below 0, basically.
+    const startRange = Math.max(changeObj.from.line, instance.firstLine());
+    const endRemoveRange = changeObj.to.line + 1;
+    const endAddRange = startRange + changeObj.text.length;
+    // If switching from one file to another, the 'remove' range will be related to the content
+    // of the previous file. So make sure the end range doesn't go past the length of the
+    // current file.
+    const endRange = Math.min(Math.max(endRemoveRange, endAddRange), instance.lastLine() + 1);
+
+    return { start: startRange, end: endRange };
   }
 
   private getColorVariable(key: string): string {
