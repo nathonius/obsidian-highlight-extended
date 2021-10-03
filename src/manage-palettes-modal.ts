@@ -1,4 +1,5 @@
 import { App, Modal } from 'obsidian';
+import { VAR_CHAR } from './constants';
 import { ColorPalette } from './interfaces';
 
 export class ManagePalettesModal extends Modal {
@@ -99,7 +100,7 @@ export class ManagePalettesModal extends Modal {
   private getStyleValue(input: string | null): string {
     if (!input) {
       return 'transparent';
-    } else if (input.startsWith('$') && this.variables[input.substring(1)]) {
+    } else if (input.startsWith(VAR_CHAR) && this.variables[input.substring(1)]) {
       return this.variables[input.substring(1)];
     }
     return input;
@@ -109,7 +110,7 @@ export class ManagePalettesModal extends Modal {
     const trimmed = input.trim();
     if (!trimmed) {
       return null;
-    } else if (trimmed.startsWith('#') || trimmed.startsWith('$')) {
+    } else if (trimmed.startsWith('#') || trimmed.startsWith(VAR_CHAR)) {
       return trimmed;
     } else {
       return `#${trimmed}`;

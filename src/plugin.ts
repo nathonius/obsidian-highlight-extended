@@ -1,7 +1,7 @@
 import * as CodeMirror from 'codemirror';
-import { MarkdownPostProcessorContext, Plugin } from 'obsidian';
-import { DEFAULT_SETTINGS, EDIT_MODE_PATTERN, PREVIEW_MODE_PATTERN } from './constants';
-import { PluginSettings } from './interfaces';
+import { Plugin } from 'obsidian';
+import { DEFAULT_SETTINGS, EDIT_MODE_PATTERN, PREVIEW_MODE_PATTERN, VAR_CHAR } from './constants';
+import { ColorPalette, PluginSettings } from './interfaces';
 import { TextColorsSettings } from './settings';
 
 import './styles.scss';
@@ -12,7 +12,6 @@ export class TextColorsPlugin extends Plugin {
   async onload(): Promise<void> {
     const savedData = await this.loadData();
     const savedSettings: PluginSettings = Object.assign({}, DEFAULT_SETTINGS, savedData);
-    console.log(savedSettings);
     this.settings = new TextColorsSettings(this.app, this, savedSettings);
 
     this.addSettingTab(this.settings);
@@ -25,9 +24,7 @@ export class TextColorsPlugin extends Plugin {
   }
 
   private clearMarks(instance: CodeMirror.Editor, start: number, end: number): void {
-    console.log(`start: ${start}; end: ${end}`);
     const line = instance.getLine(end);
-    console.log(line);
     if (line) {
       const endLength = line.length;
       const marks = instance.findMarks({ line: start, ch: 0 }, { line: end, ch: endLength });
@@ -49,29 +46,28 @@ export class TextColorsPlugin extends Plugin {
       while ((match = EDIT_MODE_PATTERN.exec(lineContent)) !== null) {
         const start = match.index;
         const end = match.index + match[0].length;
-        const color = match[1];
-        const backgroundColor = match[3] ? match[3] : 'unset';
+        const color = match[1] || null;
+        const backgroundColor = match[3] || null;
 
         // Create mark config
         const from: CodeMirror.Position = { line: lineNumber, ch: start };
         const to: CodeMirror.Position = { line: lineNumber, ch: end };
 
         // Mark text, if a color is given
-        if (color) {
+        if (color || backgroundColor) {
           instance.markText(from, to, {
-            css: `color: ${this.getColorVariable(color)}; background-color: ${this.getColorVariable(backgroundColor)};`
+            css: this.getCSS(color, backgroundColor)
           });
         }
       }
     }
   }
 
-  private markdownPostProcessor(el: HTMLElement, ctx: MarkdownPostProcessorContext): void {
+  private markdownPostProcessor(el: HTMLElement): void {
     let match: RegExpExecArray | null = null;
     while ((match = PREVIEW_MODE_PATTERN.exec(el.innerHTML)) !== null) {
-      console.log(match);
-      const color = match[3];
-      const backgroundColor = match[5] ? match[5] : 'unset';
+      const color = match[3] || null;
+      const backgroundColor = match[5] || null;
 
       // Remove the [color]
       el.innerHTML = `${el.innerHTML.substring(0, match.index + match[1].length)}${el.innerHTML.substring(
@@ -79,9 +75,10 @@ export class TextColorsPlugin extends Plugin {
       )}`;
 
       // Add the styling
-      el.innerHTML = `${el.innerHTML.substring(0, match.index + 5)} style="color: ${this.getColorVariable(
-        color
-      )}; background-color: ${this.getColorVariable(backgroundColor)};"${el.innerHTML.substring(match.index + 5)}`;
+      el.innerHTML = `${el.innerHTML.substring(0, match.index + 5)} style="${this.getCSS(
+        color,
+        backgroundColor
+      )};"${el.innerHTML.substring(match.index + 5)}`;
     }
   }
 
@@ -101,13 +98,51 @@ export class TextColorsPlugin extends Plugin {
     return { start: startRange, end: endRange };
   }
 
-  private getColorVariable(key: string): string {
-    if (key.startsWith('$')) {
+  private getCSS(colorKey: string | null, backgroundKey: string | null): string {
+    // Look for potential color vars
+    const palette = this.getColorPalette(colorKey);
+    const foregroundVar =
+      palette && palette.foreground
+        ? this.getColorVariable(palette.foreground) || palette.foreground
+        : this.getColorVariable(colorKey);
+    const backgroundVar =
+      palette && palette.background
+        ? this.getColorVariable(palette.background) || palette.background
+        : this.getColorVariable(backgroundKey);
+
+    // Get actual values
+    const foregroundValue = foregroundVar ? foregroundVar : colorKey ? colorKey : 'unset';
+    const backgroundValue = backgroundVar ? backgroundVar : backgroundKey ? backgroundKey : 'unset';
+
+    // Build CSS
+    return `color: ${foregroundValue}; background-color: ${backgroundValue}`;
+  }
+
+  /**
+   * Given a key like '@abc' return color palette
+   * abc if it exists
+   */
+  private getColorPalette(key: string | null): ColorPalette | null {
+    if (key && key.startsWith(VAR_CHAR)) {
+      const variableName = key.substring(1);
+      if (this.settings.settings.palettes[variableName]) {
+        return this.settings.settings.palettes[variableName];
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Given a key like '@abc' return color variable
+   * abc if it exists
+   */
+  private getColorVariable(key: string | null): string | null {
+    if (key && key.startsWith(VAR_CHAR)) {
       const variableName = key.substring(1);
       if (this.settings.settings.colorVariables[variableName]) {
         return this.settings.settings.colorVariables[variableName];
       }
     }
-    return key;
+    return null;
   }
 }
