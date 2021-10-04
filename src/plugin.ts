@@ -2,11 +2,13 @@ import * as CodeMirror from 'codemirror';
 import { Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, EDIT_MODE_PATTERN, PREVIEW_MODE_PATTERN, VAR_CHAR } from './constants';
 import { ColorPalette, PluginSettings } from './interfaces';
+import { RegexManager } from './regex-manager';
 import { TextColorsSettings } from './settings';
 
 import './styles.scss';
 
 export class TextColorsPlugin extends Plugin {
+  private regexManager = new RegexManager(this);
   settings!: TextColorsSettings;
 
   async onload(): Promise<void> {
@@ -43,20 +45,17 @@ export class TextColorsPlugin extends Plugin {
     for (let lineNumber = startRange; lineNumber < endRange; lineNumber++) {
       const lineContent = instance.getLine(lineNumber);
       let match: RegExpExecArray | null = null;
-      while ((match = EDIT_MODE_PATTERN.exec(lineContent)) !== null) {
-        const start = match.index;
-        const end = match.index + match[0].length;
-        const color = match[1] || null;
-        const backgroundColor = match[3] || null;
+      while ((match = this.regexManager.editModeRegex.exec(lineContent)) !== null) {
+        const { start, end, color, background } = this.regexManager.handleEditMatch(match);
 
         // Create mark config
         const from: CodeMirror.Position = { line: lineNumber, ch: start };
         const to: CodeMirror.Position = { line: lineNumber, ch: end };
 
         // Mark text, if a color is given
-        if (color || backgroundColor) {
+        if (color || background) {
           instance.markText(from, to, {
-            css: this.getCSS(color, backgroundColor)
+            css: this.getCSS(color, background)
           });
         }
       }
@@ -65,20 +64,8 @@ export class TextColorsPlugin extends Plugin {
 
   private markdownPostProcessor(el: HTMLElement): void {
     let match: RegExpExecArray | null = null;
-    while ((match = PREVIEW_MODE_PATTERN.exec(el.innerHTML)) !== null) {
-      const color = match[3] || null;
-      const backgroundColor = match[5] || null;
-
-      // Remove the [color]
-      el.innerHTML = `${el.innerHTML.substring(0, match.index + match[1].length)}${el.innerHTML.substring(
-        match.index + match[1].length + match[2].length
-      )}`;
-
-      // Add the styling
-      el.innerHTML = `${el.innerHTML.substring(0, match.index + 5)} style="${this.getCSS(
-        color,
-        backgroundColor
-      )};"${el.innerHTML.substring(match.index + 5)}`;
+    while ((match = this.regexManager.previewModeRegex.exec(el.innerHTML)) !== null) {
+      el.innerHTML = this.regexManager.handlePreviewMatch(match, el.innerHTML);
     }
   }
 
@@ -98,7 +85,7 @@ export class TextColorsPlugin extends Plugin {
     return { start: startRange, end: endRange };
   }
 
-  private getCSS(colorKey: string | null, backgroundKey: string | null): string {
+  getCSS(colorKey: string | null, backgroundKey: string | null): string {
     // Look for potential color vars
     const palette = this.getColorPalette(colorKey);
     const foregroundVar =
