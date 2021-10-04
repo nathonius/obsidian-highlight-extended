@@ -6,4 +6,5 @@ export interface ColorPalette {
 export interface PluginSettings {
   colorVariables: Record<string, string>;
   palettes: Record<string, ColorPalette>;
+  syntaxBefore: boolean;
 }

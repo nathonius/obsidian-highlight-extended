@@ -1,40 +1,54 @@
-import { EDIT_MODE_PATTERN, PREVIEW_MODE_PATTERN } from './constants';
+import {
+  AFTER_EDIT_MODE_PATTERN,
+  AFTER_PREVIEW_MODE_PATTERN,
+  BEFORE_EDIT_MODE_PATTERN,
+  BEFORE_PREVIEW_MODE_PATTERN
+} from './constants';
 import { TextColorsPlugin } from './plugin';
 
 export class RegexManager {
   constructor(private readonly plugin: TextColorsPlugin) {}
 
   get editModeRegex(): RegExp {
-    return EDIT_MODE_PATTERN;
+    return this.plugin.settings.settings.syntaxBefore ? BEFORE_EDIT_MODE_PATTERN : AFTER_EDIT_MODE_PATTERN;
   }
 
   get previewModeRegex(): RegExp {
-    return PREVIEW_MODE_PATTERN;
+    return this.plugin.settings.settings.syntaxBefore ? BEFORE_PREVIEW_MODE_PATTERN : AFTER_PREVIEW_MODE_PATTERN;
   }
 
   handleEditMatch(match: RegExpExecArray): {
-    start: number;
-    end: number;
     color: string | null;
     background: string | null;
   } {
-    const start = match.index;
-    const end = match.index + match[0].length;
     const color = match[1] || null;
-    const background = match[3] || null;
-    return { start, end, color, background };
+    const background = match[2] || null;
+    return { color, background };
   }
 
   handlePreviewMatch(match: RegExpExecArray, innerHTML: string): string {
-    const color = match[3] || null;
-    const backgroundColor = match[5] || null;
+    // Match indicies are different depending on syntax placement
+    const syntaxBefore = this.plugin.settings.settings.syntaxBefore;
+    const markMatchId = syntaxBefore ? 4 : 1;
+    const syntaxMatchId = syntaxBefore ? 1 : 2;
+    const colorMatchId = syntaxBefore ? 2 : 3;
+    const backgroundMatchId = syntaxBefore ? 3 : 4;
+
+    const mark = match[markMatchId];
+    const syntax = match[syntaxMatchId];
+    const color = match[colorMatchId] || null;
+    const backgroundColor = match[backgroundMatchId] || null;
 
     let newInnerHTML = innerHTML;
 
     // Remove the [color]
-    newInnerHTML = `${newInnerHTML.substring(0, match.index + match[1].length)}${newInnerHTML.substring(
-      match.index + match[1].length + match[2].length
-    )}`;
+    if (syntaxBefore) {
+      newInnerHTML = `${newInnerHTML.substring(0, match.index)}${newInnerHTML.substring(match.index + syntax.length)}`;
+    } else {
+      newInnerHTML = `${newInnerHTML.substring(0, match.index + mark.length)}${newInnerHTML.substring(
+        match.index + mark.length + syntax.length
+      )}`;
+    }
 
     // Add the styling
     newInnerHTML = `${newInnerHTML.substring(0, match.index + 5)} style="${this.plugin.getCSS(

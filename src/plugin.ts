@@ -1,6 +1,6 @@
 import * as CodeMirror from 'codemirror';
 import { Plugin } from 'obsidian';
-import { DEFAULT_SETTINGS, EDIT_MODE_PATTERN, PREVIEW_MODE_PATTERN, VAR_CHAR } from './constants';
+import { DEFAULT_SETTINGS, VAR_CHAR } from './constants';
 import { ColorPalette, PluginSettings } from './interfaces';
 import { RegexManager } from './regex-manager';
 import { TextColorsSettings } from './settings';
@@ -8,8 +8,8 @@ import { TextColorsSettings } from './settings';
 import './styles.scss';
 
 export class TextColorsPlugin extends Plugin {
-  private regexManager = new RegexManager(this);
   settings!: TextColorsSettings;
+  private regexManager = new RegexManager(this);
 
   async onload(): Promise<void> {
     const savedData = await this.loadData();
@@ -25,66 +25,17 @@ export class TextColorsPlugin extends Plugin {
     this.registerMarkdownPostProcessor(this.markdownPostProcessor.bind(this));
   }
 
-  private clearMarks(instance: CodeMirror.Editor, start: number, end: number): void {
-    const line = instance.getLine(end);
-    if (line) {
-      const endLength = line.length;
-      const marks = instance.findMarks({ line: start, ch: 0 }, { line: end, ch: endLength });
-      marks.forEach((m) => m.clear());
-    }
-  }
-
-  private handleChange(instance: CodeMirror.Editor, changeObj: CodeMirror.EditorChangeLinkedList): void {
-    // Compute ranges
-    const { start: startRange, end: endRange } = this.getChangeRange(instance, changeObj);
-
-    // Clear old marks on these lines
-    this.clearMarks(instance, startRange, endRange - 1);
-
-    // Mark affected lines
-    for (let lineNumber = startRange; lineNumber < endRange; lineNumber++) {
-      const lineContent = instance.getLine(lineNumber);
-      let match: RegExpExecArray | null = null;
-      while ((match = this.regexManager.editModeRegex.exec(lineContent)) !== null) {
-        const { start, end, color, background } = this.regexManager.handleEditMatch(match);
-
-        // Create mark config
-        const from: CodeMirror.Position = { line: lineNumber, ch: start };
-        const to: CodeMirror.Position = { line: lineNumber, ch: end };
-
-        // Mark text, if a color is given
-        if (color || background) {
-          instance.markText(from, to, {
-            css: this.getCSS(color, background)
-          });
-        }
-      }
-    }
-  }
-
-  private markdownPostProcessor(el: HTMLElement): void {
-    let match: RegExpExecArray | null = null;
-    while ((match = this.regexManager.previewModeRegex.exec(el.innerHTML)) !== null) {
-      el.innerHTML = this.regexManager.handlePreviewMatch(match, el.innerHTML);
-    }
-  }
-
-  private getChangeRange(
-    instance: CodeMirror.Editor,
-    changeObj: CodeMirror.EditorChangeLinkedList
-  ): { start: number; end: number } {
-    // Make sure the start of the range doesn't go below 0, basically.
-    const startRange = Math.max(changeObj.from.line, instance.firstLine());
-    const endRemoveRange = changeObj.to.line + 1;
-    const endAddRange = startRange + changeObj.text.length;
-    // If switching from one file to another, the 'remove' range will be related to the content
-    // of the previous file. So make sure the end range doesn't go past the length of the
-    // current file.
-    const endRange = Math.min(Math.max(endRemoveRange, endAddRange), instance.lastLine() + 1);
-
-    return { start: startRange, end: endRange };
-  }
-
+  /**
+   * Given a color key and background key, both of which
+   * could be null, resolves any palettes and color variables.
+   *
+   * If null is the specified value, the color will resolve to
+   * 'unset' to remove the color entirely.
+   *
+   * @todo: What is unset going to set the color to? For
+   * background it's obviously transparent, but what about
+   * for color? Should I use the text color css var instead?
+   */
   getCSS(colorKey: string | null, backgroundKey: string | null): string {
     // Look for potential color vars
     const palette = this.getColorPalette(colorKey);
@@ -103,6 +54,82 @@ export class TextColorsPlugin extends Plugin {
 
     // Build CSS
     return `color: ${foregroundValue}; background-color: ${backgroundValue}`;
+  }
+
+  /**
+   * When any line changes, reprocess the entire file for marks.
+   *
+   * @todo: It's possible to make this more efficient by only
+   * marking/unmarking affected lines. It's just going to take
+   * lots of logic, and I'm not sure it's worth it.
+   */
+  private handleChange(instance: CodeMirror.Editor): void {
+    // Clear all marks
+    instance.getAllMarks().forEach((mark) => {
+      mark.clear();
+    });
+
+    // Get all regex matches over the whole file
+    const value = instance.getValue();
+    let match: RegExpExecArray | null = null;
+    while ((match = this.regexManager.editModeRegex.exec(value)) !== null) {
+      // Get the exact positions for this match
+      const startIndex = match.index;
+      const endIndex = startIndex + match[0].length;
+      const { from, to } = this.getLineRangeFromIndex(value, startIndex, endIndex);
+
+      // Get the color and background values (possibly unresolved variables) for this match
+      const { color, background } = this.regexManager.handleEditMatch(match);
+
+      // Mark the text
+      instance.markText(from, to, { css: this.getCSS(color, background) });
+    }
+  }
+
+  /**
+   * Given the value of the entire file, the index of a match,
+   * and the ending index of a match, return two CodeMirror.Position
+   * objects to use for text marking.
+   *
+   * @todo: this could be reworked to be more efficient by
+   * remembering the location of the previous match in the file and
+   * beginning at that point and line number;
+   */
+  private getLineRangeFromIndex(
+    value: string,
+    startIndex: number,
+    endIndex: number
+  ): { from: CodeMirror.Position; to: CodeMirror.Position } {
+    const from = { line: 0, ch: 0 };
+    const to = { line: 0, ch: 0 };
+    let lineNumber = 0;
+    let lineIndex = 0;
+    for (let i = 0; i < endIndex; i++) {
+      if (value[i] && value[i].match(/\r\n|\r|\n/)) {
+        lineNumber += 1;
+        lineIndex = 0;
+      } else {
+        if (i === startIndex) {
+          from.line = lineNumber;
+          from.ch = lineIndex;
+        } else if (i === endIndex - 1) {
+          to.line = lineNumber;
+          to.ch = lineIndex + 1;
+        }
+        lineIndex += 1;
+      }
+    }
+    return { from, to };
+  }
+
+  /**
+   * Handle setting text color in preview mode.
+   */
+  private markdownPostProcessor(el: HTMLElement): void {
+    let match: RegExpExecArray | null = null;
+    while ((match = this.regexManager.previewModeRegex.exec(el.innerHTML)) !== null) {
+      el.innerHTML = this.regexManager.handlePreviewMatch(match, el.innerHTML);
+    }
   }
 
   /**

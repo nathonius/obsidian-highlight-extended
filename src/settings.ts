@@ -24,6 +24,18 @@ export class TextColorsSettings extends PluginSettingTab {
   async display(): Promise<void> {
     this.containerEl.empty();
     this.containerEl.createEl('h2', { text: 'Text Colors settings.' });
+
+    // Add syntax before setting
+    new Setting(this.containerEl)
+      .setName('Color Before Text')
+      .setDesc('Look for the extra [color] identifier before the highlighted text.')
+      .addToggle((toggle) => {
+        toggle.setValue(this.settings.syntaxBefore).onChange((value) => {
+          this.saveSetting('syntaxBefore', value);
+        });
+      });
+
+    // Add manage variables setting
     new Setting(this.containerEl)
       .setName('Color Variables')
       .setDesc('Define custom colors. Color variables can be referenced using the $ symbol.')
@@ -33,6 +45,8 @@ export class TextColorsSettings extends PluginSettingTab {
           this.manageVariablesModal.open();
         });
       });
+
+    // Add manage palette setting
     new Setting(this.containerEl)
       .setName('Palettes')
       .setDesc(
