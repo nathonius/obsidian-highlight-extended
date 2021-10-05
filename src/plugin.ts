@@ -12,12 +12,31 @@ export class TextColorsPlugin extends Plugin {
   private regexManager = new RegexManager(this);
 
   async onload(): Promise<void> {
+    // Load settings
     const savedData = await this.loadData();
     const savedSettings: PluginSettings = Object.assign({}, DEFAULT_SETTINGS, savedData);
     this.settings = new TextColorsSettings(this.app, this, savedSettings);
 
+    // Add settings tab and settings commands
     this.addSettingTab(this.settings);
 
+    this.addCommand({
+      id: 'text-colors-plugin-manage-variables',
+      name: 'Manage color variables',
+      callback: () => {
+        this.settings.openManageVariablesModal();
+      }
+    });
+
+    this.addCommand({
+      id: 'text-colors-plugin-manage-palettes',
+      name: 'Manage color palettes',
+      callback: () => {
+        this.settings.openManagePalettesModal();
+      }
+    });
+
+    // Register processors
     this.registerCodeMirror((editor) => {
       editor.on('change', this.handleChange.bind(this));
     });

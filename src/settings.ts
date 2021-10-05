@@ -62,6 +62,17 @@ export class TextColorsSettings extends PluginSettingTab {
       });
   }
 
+  openManageVariablesModal(): void {
+    this.manageVariablesModal.variables = this.settings.colorVariables;
+    this.manageVariablesModal.open();
+  }
+
+  openManagePalettesModal(): void {
+    this.managePalettesModal.variables = this.settings.colorVariables;
+    this.managePalettesModal.palettes = this.settings.palettes;
+    this.managePalettesModal.open();
+  }
+
   private async saveSetting<K extends keyof PluginSettings>(key: K, value: PluginSettings[K]): Promise<void> {
     this.settings[key] = value;
     await this.plugin.saveData(this.settings);

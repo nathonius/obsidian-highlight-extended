@@ -15,6 +15,7 @@ export class ManageVariablesModal extends Modal {
     this.render();
   }
 
+  // TODO: Refactor this and the other modal to have a common base class with all the utility methods that are already in the other class
   private render(): void {
     this.modalEl.addClass('text-color-plugin-modal');
     this.titleEl.setText('Manage Color Variables');
