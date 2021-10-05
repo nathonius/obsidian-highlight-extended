@@ -35,12 +35,18 @@ export class ManagePalettesModal extends Modal {
       Object.keys(this.palettes).forEach((key) => {
         const row = table.createEl('tr', { cls: 'text-color-table--table-row' });
         row.createEl('td', { text: key });
-        const foregroundCell = row.createEl('td', { text: this.getTextValue(this.palettes[key].foreground) });
+        const foregroundCell = row.createEl('td', {
+          cls: 'text-color-table--color-value',
+          text: this.getTextValue(this.palettes[key].foreground)
+        });
         foregroundCell.createSpan({
           cls: 'text-color-table--color-square',
           attr: { style: `background-color: ${this.getStyleValue(this.palettes[key].foreground)};` }
         });
-        const backgroundCell = row.createEl('td', { text: this.getTextValue(this.palettes[key].background) });
+        const backgroundCell = row.createEl('td', {
+          cls: 'text-color-table--color-value',
+          text: this.getTextValue(this.palettes[key].background)
+        });
         backgroundCell.createSpan({
           cls: 'text-color-table--color-square',
           attr: { style: `background-color: ${this.getStyleValue(this.palettes[key].background)};` }
@@ -64,11 +70,13 @@ export class ManagePalettesModal extends Modal {
 
     const palForegroundCell = inputRow.createEl('td');
     const palForegroundInput = palForegroundCell.createEl('input', {
+      cls: 'text-color-table--var-value-input',
       attr: { placeholder: 'Foreground', type: 'text' }
     });
 
     const palBackgroundCell = inputRow.createEl('td');
     const palBackgroundInput = palBackgroundCell.createEl('input', {
+      cls: 'text-color-table--var-value-input',
       attr: { placeholder: 'Background', type: 'text' }
     });
 

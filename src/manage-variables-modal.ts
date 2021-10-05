@@ -32,7 +32,7 @@ export class ManageVariablesModal extends Modal {
       Object.keys(this.variables).forEach((key) => {
         const row = table.createEl('tr', { cls: 'text-color-table--table-row' });
         row.createEl('td', { text: key });
-        const valueCell = row.createEl('td', { text: this.variables[key] });
+        const valueCell = row.createEl('td', { cls: 'text-color-table--color-value', text: this.variables[key] });
         valueCell.createSpan({
           cls: 'text-color-table--color-square',
           attr: { style: `background-color: ${this.variables[key]};` }
@@ -55,7 +55,10 @@ export class ManageVariablesModal extends Modal {
     const varNameInput = varNameCell.createEl('input', { attr: { placeholder: 'Variable', type: 'text' } });
 
     const varValueCell = inputRow.createEl('td');
-    const varValueInput = varValueCell.createEl('input', { attr: { placeholder: 'Value', type: 'text' } });
+    const varValueInput = varValueCell.createEl('input', {
+      cls: 'text-color-table--var-value-input',
+      attr: { placeholder: 'Value', type: 'text' }
+    });
 
     const addCell = inputRow.createEl('td', { cls: 'text-color-table--button-cell' });
     const addButton = addCell.createEl('button', { cls: 'mod-cta', text: 'Add' });
