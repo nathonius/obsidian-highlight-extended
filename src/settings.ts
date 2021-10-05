@@ -1,4 +1,5 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
+import { VAR_CHAR } from './constants';
 import { ColorPalette, PluginSettings } from './interfaces';
 import { ManagePalettesModal } from './manage-palettes-modal';
 import { ManageVariablesModal } from './manage-variables-modal';
@@ -38,7 +39,7 @@ export class TextColorsSettings extends PluginSettingTab {
     // Add manage variables setting
     new Setting(this.containerEl)
       .setName('Color Variables')
-      .setDesc('Define custom colors. Color variables can be referenced using the $ symbol.')
+      .setDesc(`Define custom colors. Color variables can be referenced using the ${VAR_CHAR} symbol.`)
       .addButton((button) => {
         button.setButtonText('Manage Variables').onClick(() => {
           this.manageVariablesModal.variables = this.settings.colorVariables;
@@ -50,7 +51,7 @@ export class TextColorsSettings extends PluginSettingTab {
     new Setting(this.containerEl)
       .setName('Palettes')
       .setDesc(
-        'Define combinations of foreground and background colors. Palettes can be referenced using the $ symbol.'
+        `Define combinations of foreground and background colors. Palettes can be referenced using the ${VAR_CHAR} symbol.`
       )
       .addButton((button) => {
         button.setButtonText('Manage Palettes').onClick(() => {
