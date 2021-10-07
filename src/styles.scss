@@ -1,5 +1,5 @@
 .text-color-plugin-modal {
-  max-width: 90vw;
+  max-width: 100vw;
 }
 .text-color-table {
   &--table {
@@ -48,6 +48,7 @@
       }
       &.text-color-table--var-value-input {
         font-family: var(--font-monospace);
+        width: 230px;
       }
     }
   }
