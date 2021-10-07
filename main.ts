@@ -1,3 +1,3 @@
-import { TextColorsPlugin } from './src/plugin';
+import { HighlightExtendedPlugin } from './src/plugin';
 
-export default TextColorsPlugin;
+export default HighlightExtendedPlugin;

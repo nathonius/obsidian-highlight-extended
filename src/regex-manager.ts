@@ -4,10 +4,10 @@ import {
   BEFORE_EDIT_MODE_PATTERN,
   BEFORE_PREVIEW_MODE_PATTERN
 } from './constants';
-import { TextColorsPlugin } from './plugin';
+import { HighlightExtendedPlugin } from './plugin';
 
 export class RegexManager {
-  constructor(private readonly plugin: TextColorsPlugin) {}
+  constructor(private readonly plugin: HighlightExtendedPlugin) {}
 
   get editModeRegex(): RegExp {
     return this.plugin.settings.settings.syntaxBefore ? BEFORE_EDIT_MODE_PATTERN : AFTER_EDIT_MODE_PATTERN;

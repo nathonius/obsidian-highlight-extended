@@ -1,6 +1,6 @@
 {
-  "id": "obsidian-text-colors",
-  "name": "Text Colors",
+  "id": "highlight-extended",
+  "name": "Highlight Extended",
   "version": "1.0.0",
   "minAppVersion": "0.12.15",
   "description": "Easily add custom text colors without HTML.",

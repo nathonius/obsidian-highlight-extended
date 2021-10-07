@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-text-colors",
+  "name": "obsidian-highlight-extended",
   "version": "0.12.0",
   "description": "Easily add custom text colors without HTML.",
   "main": "main.js",
@@ -13,7 +13,7 @@
     "name": "OfficerHalf",
     "url": "https://nathan-smith.org/"
   },
-  "repository": "github:OfficerHalf/obsidian-text-colors",
+  "repository": "github:OfficerHalf/obsidian-highlight-extended",
   "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^18.0.0",

@@ -3,19 +3,19 @@ import { Plugin } from 'obsidian';
 import { DEFAULT_SETTINGS, VAR_CHAR } from './constants';
 import { ColorPalette, PluginSettings } from './interfaces';
 import { RegexManager } from './regex-manager';
-import { TextColorsSettings } from './settings';
+import { HighlightExtendedSettings } from './settings';
 
 import './styles.scss';
 
-export class TextColorsPlugin extends Plugin {
-  settings!: TextColorsSettings;
+export class HighlightExtendedPlugin extends Plugin {
+  settings!: HighlightExtendedSettings;
   private regexManager = new RegexManager(this);
 
   async onload(): Promise<void> {
     // Load settings
     const savedData = await this.loadData();
     const savedSettings: PluginSettings = Object.assign({}, DEFAULT_SETTINGS, savedData);
-    this.settings = new TextColorsSettings(this.app, this, savedSettings);
+    this.settings = new HighlightExtendedSettings(this.app, this, savedSettings);
 
     // Add settings tab and settings commands
     this.addSettingTab(this.settings);

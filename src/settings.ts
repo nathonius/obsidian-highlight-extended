@@ -3,9 +3,9 @@ import { VAR_CHAR } from './constants';
 import { ColorPalette, PluginSettings } from './interfaces';
 import { ManagePalettesModal } from './manage-palettes-modal';
 import { ManageVariablesModal } from './manage-variables-modal';
-import { TextColorsPlugin } from './plugin';
+import { HighlightExtendedPlugin } from './plugin';
 
-export class TextColorsSettings extends PluginSettingTab {
+export class HighlightExtendedSettings extends PluginSettingTab {
   settings: PluginSettings;
   manageVariablesModal = new ManageVariablesModal(
     this.plugin.app,
@@ -17,7 +17,7 @@ export class TextColorsSettings extends PluginSettingTab {
     this.addPalette.bind(this),
     this.removePalette.bind(this)
   );
-  constructor(app: App, private readonly plugin: TextColorsPlugin, savedSettings: PluginSettings) {
+  constructor(app: App, private readonly plugin: HighlightExtendedPlugin, savedSettings: PluginSettings) {
     super(app, plugin);
     this.settings = savedSettings;
   }
