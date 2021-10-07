@@ -1,8 +1,8 @@
-import { App, Modal } from 'obsidian';
-import { VAR_CHAR } from './constants';
+import { App } from 'obsidian';
 import { ColorPalette } from './interfaces';
+import { ManageModal } from './manage-modal';
 
-export class ManagePalettesModal extends Modal {
+export class ManagePalettesModal extends ManageModal {
   variables!: Record<string, string>;
   palettes!: Record<string, ColorPalette>;
 
@@ -96,32 +96,5 @@ export class ManagePalettesModal extends Modal {
         }
       }
     });
-  }
-
-  private getTextValue(input: string | null): string {
-    if (!input) {
-      return '-';
-    }
-    return input;
-  }
-
-  private getStyleValue(input: string | null): string {
-    if (!input) {
-      return 'transparent';
-    } else if (input.startsWith(VAR_CHAR) && this.variables[input.substring(1)]) {
-      return this.variables[input.substring(1)];
-    }
-    return input;
-  }
-
-  private getColorValue(input: string): string | null {
-    const trimmed = input.trim();
-    if (!trimmed) {
-      return null;
-    } else if (trimmed.startsWith('#') || trimmed.startsWith(VAR_CHAR)) {
-      return trimmed;
-    } else {
-      return `#${trimmed}`;
-    }
   }
 }

@@ -1,6 +1,7 @@
-import { App, Modal } from 'obsidian';
+import { App } from 'obsidian';
+import { ManageModal } from './manage-modal';
 
-export class ManageVariablesModal extends Modal {
+export class ManageVariablesModal extends ManageModal {
   variables!: Record<string, string>;
 
   constructor(
@@ -15,7 +16,6 @@ export class ManageVariablesModal extends Modal {
     this.render();
   }
 
-  // TODO: Refactor this and the other modal to have a common base class with all the utility methods that are already in the other class
   private render(): void {
     this.modalEl.addClass('text-color-plugin-modal');
     this.titleEl.setText('Manage Color Variables');
@@ -32,10 +32,13 @@ export class ManageVariablesModal extends Modal {
       Object.keys(this.variables).forEach((key) => {
         const row = table.createEl('tr', { cls: 'text-color-table--table-row' });
         row.createEl('td', { text: key });
-        const valueCell = row.createEl('td', { cls: 'text-color-table--color-value', text: this.variables[key] });
+        const valueCell = row.createEl('td', {
+          cls: 'text-color-table--color-value',
+          text: this.getTextValue(this.variables[key])
+        });
         valueCell.createSpan({
           cls: 'text-color-table--color-square',
-          attr: { style: `background-color: ${this.variables[key]};` }
+          attr: { style: `background-color: ${this.getStyleValue(this.variables[key])};` }
         });
         const deleteCell = row.createEl('td', { cls: 'text-color-table--button-cell' });
         const deleteButton = deleteCell.createEl('button', { text: 'Delete' });
@@ -64,13 +67,13 @@ export class ManageVariablesModal extends Modal {
     const addButton = addCell.createEl('button', { cls: 'mod-cta', text: 'Add' });
     addButton.addEventListener('click', async () => {
       if (varNameInput.value && varValueInput.value) {
-        const value = varValueInput.value.trim().startsWith('#')
-          ? varValueInput.value.trim()
-          : `#${varValueInput.value.trim()}`;
-        const added = await this.addVariable(varNameInput.value, value);
-        if (added) {
-          this.variables[varNameInput.value] = value;
-          this.render();
+        const value = this.getColorValue(varValueInput.value);
+        if (value) {
+          const added = await this.addVariable(varNameInput.value, value);
+          if (added) {
+            this.variables[varNameInput.value] = value;
+            this.render();
+          }
         }
       }
     });
