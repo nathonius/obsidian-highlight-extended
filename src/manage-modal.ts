@@ -34,10 +34,8 @@ export abstract class ManageModal extends Modal {
     const trimmed = input.trim();
     if (!trimmed) {
       return null;
-    } else if (trimmed.startsWith('#') || trimmed.startsWith(VAR_CHAR)) {
-      return trimmed;
     } else {
-      return `#${trimmed}`;
+      return trimmed;
     }
   }
 }
