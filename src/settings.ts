@@ -29,7 +29,7 @@ export class HighlightExtendedSettings extends PluginSettingTab {
     // Add syntax before setting
     new Setting(this.containerEl)
       .setName('Color Before Text')
-      .setDesc('Look for the extra [color] identifier before the highlighted text.')
+      .setDesc('Look for the extra {color} identifier before the highlighted text.')
       .addToggle((toggle) => {
         toggle.setValue(this.settings.syntaxBefore).onChange((value) => {
           this.saveSetting('syntaxBefore', value);
