@@ -16,7 +16,7 @@ or
 
 `==highlighted text=={#12263A;#06BCC1}`
 
-Colors are not limited to hex codes; any valid CSS color will do like `hsl`, `rgb`, or even a css variable. However, long color codes or hsl values can be difficult to remember on the fly, so you can also use custom color variables defined in plugin settings:
+Colors are not limited to hex codes; any valid CSS color will do like `hsl`, `rgb`, or even a css variable. However, long color codes or hsl values can be difficult to remember on the fly, so you can also use custom color variables defined in plugin settings with an `@`:
 
 `{@fancyfg;@fancybg}==highlighted text==`
 
