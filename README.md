@@ -4,7 +4,7 @@ An Obsidian plugin that extends the Obsidian highlight syntax to support custom 
 
 ## Install
 
-Install from the community plugin registry or by cloning this repo into your `.obsidian/plugins` folder and enable the plugin.
+~~Install from the community plugin registry~~ or by cloning this repo into your `.obsidian/plugins` folder and enable the plugin.
 
 ## Use
 
