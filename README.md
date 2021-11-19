@@ -1,3 +1,7 @@
+# Unmaintained
+
+This plugin is currently unmaintained. I might come back to it at some point, but the way it highlights is fragile and steamrolls over other plugins. It needs some serious rearchitecting.
+
 ## Highlight Extended
 
 An Obsidian plugin that extends the Obsidian highlight syntax to support custom foreground and background colors.
